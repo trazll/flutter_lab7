@@ -66,5 +66,35 @@ class SoundService {
     await _backgroundPlayer!.setVolume(_isMuted ? 0.0 : 0.4);
     await _backgroundPlayer!.play(AssetSource('sounds/background.mp3'));
   }
-  static Future<void> _playSound
+  static Future<void> _playSound(String fileName, {double volume = 1.0}) async {
+    if (_isMuted) return;
+
+    final player = _sfxPool[_sfxIndex % _poolSize];
+
+    await player.stop();
+    await player.setVolume(volume);
+    await player.play(AssetSource('sounds/$fileName'));
+  }
+  static Future<void> playWin() => _playSound('win.mp3');
+  static Future<void> playJackpot() => _playSound('jackpot.mp3');
+  static Future<void> playLose() => _playSound('lose.mp3', volume: 0.7);
+  static Future<void> playClick() => _playSound('click.mp3', volume: 0.6);
+
+  static Future<void> toggleMute() async {
+    _isMuted = !_isMuted;
+    if (_isMuted) {
+      await _backgroundPlayer?.setVolume(0.0);
+    } else {
+      await _backgroundPlayer?.setVolume(0.4);
+    }
+  }
+
+  static Future<void> dispose() async {
+    await _backgroundPlayer?.dispose();
+    for (final p in _sfxPool) {
+      await p.dispose();
+    }
+    _sfxPool.clear();
+    _backgroundStarted = false;
+  }
 }
